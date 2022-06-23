@@ -1,0 +1,12 @@
+[source]
+    source_dir = "/Users/hongxue.cao/work/www/go/fsevents/example"
+
+[destination]
+    ssh_ip = "112.126.11.16"
+    ssh_port = "10021"
+    ssh_user = "root"
+    ssh_identity = "/mnt/d"
+    destination_dir = "/mnt/d"
+
+[replace_rule]
+    sed_rule = "'s/qunxiner.net/tingxiner.net/g;s/192.168.10.184/10.0.10.65/g;s/192.168.16.127/10.0.10.66/g;s/lb-2ze4dmkc3pvm6gqluxo1g/lb-2zegtrydvc8zadik59nyn/g;s/lb-2zec12cvgyaypljhvf7hx/lb-2zev23fwb17em2f4gpbce/g;s/192.168.11.84/10.0.10.67/g;s/192.168.10.185/10.0.11.227/g;s/192.168.10.181/10.0.11.227/g;s/123.56.144.51/112.126.11.16/g;s/172.17.109.69/10.0.10.68/g;s/1e15849033-laa84/1149b49065-rku24/g;s/192.168.10.187/10.0.10.67/g'"
