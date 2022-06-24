@@ -20,21 +20,20 @@
 
 ```toml
 [source]
-    source_dir = "~/www/go/fsevents/example"
-    target_dir = "/root/"
+source_dir = "/home/www/"
+target_dir = "/root/"
 
 [destination]
-    ssh_ip = "47.243.107.249"
-    ssh_port = "22"
-    ssh_user = "root"
-    ssh_identify = "~/.ssh/identify.pem"
+ssh_ip = "47.24.10.249"
+ssh_port = "22333"
+ssh_user = "www"
+ssh_identify = "～/.ssh/dientify.pem"
 
 [command]
-    completed_cmd = "touch /root/b.text"
+completed_cmd = "touch /root/b.text"
 
 [replace_rule]
-    sed_rule = "'s/1e15849033-laa84/1149b49065-rku24/g'"
-
+sed_rule = "'s/1e15849033-laa84/1149b49065-rku24/g'"
 ```
 
 

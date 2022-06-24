@@ -30,12 +30,43 @@ func NewNotifyToSync() *NotifyToSync {
 	return m
 }
 
-func (n *NotifyToSync) Notify(name string) {
+// CreateNotify
+// @Description: 同步远端
+// @receiver n
+// @param name
+func (n *NotifyToSync) CreateNotify(name string) {
 	err := n.FileSync(name)
 	if err != nil {
 		return
 	}
 	n.AfterOperation()
+}
+
+// RemoveNotify
+// @Description: 文件删除，远程文件移动到临时目录 rm存在风险
+// @receiver n
+// @param name
+// @return err
+func (n *NotifyToSync) RemoveNotify(name string) {
+	remoteDir := name
+	sourceDir := n.Configs.Source.SourceDir
+	relativePath, err := filepath.Rel(remoteDir, sourceDir)
+	if targetDir := n.Configs.Source.TargetDir; targetDir != "" {
+		if err != nil {
+			return
+		}
+		remoteDir = filepath.Join(targetDir, relativePath)
+	}
+
+	mvPath := filepath.Join("/tmp/sync/", relativePath)
+
+	c := fmt.Sprintf("ssh -p %s  -i %s -l %s  %s  \" mv -f %s %s\"", n.SshPort, n.SshIdentify, n.SshUser, n.SshIp, remoteDir, mvPath)
+	log.Printf("删除远程文件：%s\n", remoteDir)
+	cmd := exec.Command("bash", "-c", c)
+	err = cmd.Run()
+	if err != nil {
+		return
+	}
 }
 
 // FileSync
