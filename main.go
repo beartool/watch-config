@@ -1,4 +1,5 @@
-//+build linux darwin windows
+//go:build linux || darwin || windows
+// +build linux darwin windows
 
 package main
 
@@ -15,7 +16,7 @@ import (
 
 func main() {
 	app := &cli.App{
-		Name:  "watcher-file",
+		Name:  "watch-file",
 		Usage: "sync config to other environment",
 		Flags: []cli.Flag{
 			&cli.StringFlag{

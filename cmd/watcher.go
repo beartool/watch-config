@@ -53,14 +53,16 @@ func (this *WatcherFile) WatchEvent() {
 		case ev := <-this.watch.Events:
 			{
 				if ev.Op&fsnotify.Create == fsnotify.Create {
-					log.Println("创建文件 : ", ev.Name)
 					//获取新创建文件的信息，如果是目录，则加入监控中
 					file, err := os.Stat(ev.Name)
 					if err == nil && file.IsDir() {
 						this.watch.Add(ev.Name)
 						log.Println("添加监控 : ", ev.Name)
 					}
-					this.notify.CreateNotify(ev.Name)
+					if !file.IsDir() {
+						log.Println("创建文件 : ", ev.Name)
+						this.notify.CreateNotify(ev.Name)
+					}
 				}
 
 				if ev.Op&fsnotify.Write == fsnotify.Write {
@@ -69,7 +71,6 @@ func (this *WatcherFile) WatchEvent() {
 				}
 
 				if ev.Op&fsnotify.Remove == fsnotify.Remove {
-					log.Println("删除文件 : ", ev.Name)
 					//如果删除文件是目录，则移除监控
 					fi, err := os.Stat(ev.Name)
 					if err == nil && fi.IsDir() {

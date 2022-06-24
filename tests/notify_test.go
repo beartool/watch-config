@@ -1,7 +1,9 @@
 package tests
 
 import (
+	"fmt"
 	"log"
+	"regexp"
 	"testing"
 	"watch-config/cmd"
 	"watch-config/configs"
@@ -35,4 +37,9 @@ func TestRemove(t *testing.T) {
 	notify := cmd.NewNotifyToSync()
 
 	notify.RemoveNotify("/home/www/watch-config/fsevents/example/text")
+}
+
+func TestMatchString(t *testing.T) {
+	matched, err := regexp.MatchString(`\w+\.(swp|swx|\w+~)$`, "a.test~a")
+	fmt.Println(matched, err) //true <nil>
 }

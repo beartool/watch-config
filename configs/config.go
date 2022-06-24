@@ -29,7 +29,7 @@ type Destination struct {
 }
 
 type Command struct {
-	CompletedCmd string `toml:"completed_cmd"`
+	CompletedCmd []string `toml:"completed_cmd"`
 }
 
 type ReplaceRule struct {

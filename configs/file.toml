@@ -1,5 +1,5 @@
 [source]
-    source_dir = "/home/www/"
+    source_dir = "/home/www/watch-config"
     target_dir = "/root/"
     delete_dir = "/tmp/watch_file"
 
@@ -10,7 +10,7 @@
     ssh_identify = "～/.ssh/dientify.pem"
 
 [command]
-    completed_cmd = "touch /root/b.text"
+    completed_cmd = ["touch /root/b.text"]
 
 [replace_rule]
     sed_rule = "'s/1e15849033-laa84/1149b49065-rku24/g'"

@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
+	"regexp"
 	"watch-config/configs"
 )
 
@@ -48,6 +48,10 @@ func (n *NotifyToSync) CreateNotify(name string) {
 // @param name
 // @return err
 func (n *NotifyToSync) RemoveNotify(name string) {
+	isTmp := n.CheckIsTmpFile(name)
+	if isTmp {
+		return
+	}
 	remoteDir := name
 	sourceDir := n.Configs.Source.SourceDir
 	relativePath, err := filepath.Rel(sourceDir, remoteDir)
@@ -87,6 +91,10 @@ func (n *NotifyToSync) RemoveNotify(name string) {
 // @receiver this
 // @param name
 func (n *NotifyToSync) FileSync(name string) (err error) {
+	isTmp := n.CheckIsTmpFile(name)
+	if isTmp {
+		return err
+	}
 	remoteDir := filepath.Dir(name)
 	if targetDir := n.Configs.Source.TargetDir; targetDir != "" {
 		sourceDir := n.Configs.Source.SourceDir
@@ -109,11 +117,6 @@ func (n *NotifyToSync) FileSync(name string) (err error) {
 		return
 	}
 	filename := filepath.Base(name)
-	extname := path.Ext(filename)
-	if extname == ".swp" {
-		log.Printf("临时文件不同步 %s", name)
-		return
-	}
 	remotePath := filepath.Join(remoteDir, filename)
 
 	c = fmt.Sprintf("scp -P %s  -i %s  %s  %s@%s:%s", n.SshPort, n.SshIdentify, name, n.SshUser, n.SshIp, remotePath)
@@ -138,7 +141,7 @@ func (n *NotifyToSync) ContentReplace(name string) {
 	}
 
 	c := fmt.Sprintf("ssh -p %s  -i %s -l %s  %s  \"sed -i %s %s \"", n.SshPort, n.SshIdentify, n.SshUser, n.SshIp, sedRule, name)
-	log.Printf("执行替换：%s\n", c)
+	log.Printf("执行替换：%s\n", sedRule)
 	cmd := exec.Command("bash", "-c", c)
 	err := cmd.Run()
 	if err != nil {
@@ -153,16 +156,29 @@ func (n *NotifyToSync) ContentReplace(name string) {
 // @param name//
 func (n *NotifyToSync) AfterOperation() {
 	command := n.Configs.Command.CompletedCmd
+	for _, cmd := range command {
+		c := fmt.Sprintf("ssh -p %s  -i %s -l %s  %s  \" %s \"", n.SshPort, n.SshIdentify, n.SshUser, n.SshIp, cmd)
+		log.Printf("后置命令执行：%s\n", c)
+		cmd := exec.Command("bash", "-c", c)
+		err := cmd.Run()
+		if err != nil {
+			log.Println("后置命令执行失败")
+		}
+	}
+}
 
-	if command == "" {
-		return
+//
+// CheckIsTmpFile
+// @Description: 检测是否是临时文件
+// @receiver n
+// @param name
+// @return tmp
+//
+func (n *NotifyToSync) CheckIsTmpFile(name string) (tmp bool) {
+	filename := filepath.Base(name)
+	matched, err := regexp.MatchString(`\w+\.(swp|swx|\w+~)$`, filename)
+	if err == nil && matched == true {
+		return true
 	}
-	log.Println(n.SshIdentify)
-	c := fmt.Sprintf("ssh -p %s  -i %s -l %s  %s  \" %s \"", n.SshPort, n.SshIdentify, n.SshUser, n.SshIp, command)
-	log.Printf("启动服务：%s\n", c)
-	cmd := exec.Command("bash", "-c", c)
-	err := cmd.Run()
-	if err != nil {
-		return
-	}
+	return false
 }
