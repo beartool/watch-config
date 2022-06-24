@@ -50,7 +50,7 @@ func (n *NotifyToSync) CreateNotify(name string) {
 func (n *NotifyToSync) RemoveNotify(name string) {
 	remoteDir := name
 	sourceDir := n.Configs.Source.SourceDir
-	relativePath, err := filepath.Rel(remoteDir, sourceDir)
+	relativePath, err := filepath.Rel(sourceDir, remoteDir)
 	if targetDir := n.Configs.Source.TargetDir; targetDir != "" {
 		if err != nil {
 			return
@@ -59,10 +59,18 @@ func (n *NotifyToSync) RemoveNotify(name string) {
 	}
 
 	mvPath := filepath.Join("/tmp/sync/", relativePath)
-
-	c := fmt.Sprintf("ssh -p %s  -i %s -l %s  %s  \" mv -f %s %s\"", n.SshPort, n.SshIdentify, n.SshUser, n.SshIp, remoteDir, mvPath)
-	log.Printf("删除远程文件：%s\n", remoteDir)
+	mvDir := filepath.Dir(mvPath)
+	c := fmt.Sprintf("ssh -p %s  -i %s -l %s  %s  \" mkdir -p %s \"", n.SshPort, n.SshIdentify, n.SshUser, n.SshIp, mvDir)
+	log.Printf("创建远程目录：%s\n", remoteDir)
 	cmd := exec.Command("bash", "-c", c)
+	err = cmd.Run()
+	if err != nil {
+		return
+	}
+
+	c = fmt.Sprintf("ssh -p %s  -i %s -l %s  %s  \" mv -f %s %s\"", n.SshPort, n.SshIdentify, n.SshUser, n.SshIp, remoteDir, mvPath)
+	log.Printf("删除远程文件：%s\n", remoteDir)
+	cmd = exec.Command("bash", "-c", c)
 	err = cmd.Run()
 	if err != nil {
 		return
@@ -77,7 +85,7 @@ func (n *NotifyToSync) FileSync(name string) (err error) {
 	remoteDir := filepath.Dir(name)
 	if targetDir := n.Configs.Source.TargetDir; targetDir != "" {
 		sourceDir := n.Configs.Source.SourceDir
-		relativePath, err := filepath.Rel(remoteDir, sourceDir)
+		relativePath, err := filepath.Rel(sourceDir, remoteDir)
 		if err == nil {
 			remoteDir = filepath.Join(targetDir, relativePath)
 		}
