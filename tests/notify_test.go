@@ -25,8 +25,14 @@ func TestAfterOperation(t *testing.T) {
 func TestFileSync(t *testing.T) {
 	notify := cmd.NewNotifyToSync()
 
-	err := notify.FileSync("/Users/hongxue.cao/work/www/go/fsevents/example/a.text")
+	err := notify.FileSync("/home/www/watch-config/fsevents/example/text")
 	if err != nil {
 		return
 	}
+}
+
+func TestRemove(t *testing.T) {
+	notify := cmd.NewNotifyToSync()
+
+	notify.RemoveNotify("/home/www/watch-config/fsevents/example/text")
 }
