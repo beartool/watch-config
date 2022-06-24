@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
@@ -29,43 +30,95 @@ func NewNotifyToSync() *NotifyToSync {
 	return m
 }
 
-func (this *NotifyToSync) Notify(name string) {
-	destination := configs.Config.Destination
-	identifyFile := destination.SshIdentity
-	sshIp := destination.SshIp
-	sshPort := destination.SshPort
-	sshUser := destination.SshUser
-	sedRule := configs.Config.ReplaceRule.SedRule
+func (n *NotifyToSync) Notify(name string) {
+	err := n.FileSync(name)
+	if err != nil {
+		return
+	}
+	n.AfterOperation()
+}
 
+// FileSync
+// @Description: 同步文件到远端
+// @receiver this
+// @param name
+func (n *NotifyToSync) FileSync(name string) (err error) {
+	remoteDir := filepath.Dir(name)
+	if targetDir := n.Configs.Source.TargetDir; targetDir != "" {
+		sourceDir := n.Configs.Source.SourceDir
+		relativePath, err := filepath.Rel(remoteDir, sourceDir)
+		if err == nil {
+			remoteDir = filepath.Join(targetDir, relativePath)
+		}
+	}
+
+	c := fmt.Sprintf("ssh -p %s  -i %s -l %s  %s  \" mkdir -p %s \"", n.SshPort, n.SshIdentify, n.SshUser, n.SshIp, remoteDir)
+	log.Printf("创建远程目录：%s\n", remoteDir)
+	cmd := exec.Command("bash", "-c", c)
+	err = cmd.Run()
+	if err != nil {
+		return
+	}
+	// 目录则不执行同步
+	fileInfo, err := os.Stat(name)
+	if err != nil || fileInfo.IsDir() {
+		return
+	}
 	filename := filepath.Base(name)
 	extname := path.Ext(filename)
-	if identifyFile == "" || sshPort == "" || sshIp == "" || sshUser == "" {
-		log.Fatalf("远程同步服务器配置缺失")
-	}
 	if extname == ".swp" {
 		log.Printf("临时文件不同步 %s", name)
 		return
 	}
+	remotePath := filepath.Join(remoteDir, filename)
 
-	dir := filepath.Dir(name)
-
-	c := fmt.Sprintf("ssh -p %s  -i %s -l %s  %s  \" mkdir -p %s \"", sshPort, identifyFile, sshUser, sshIp, dir)
-	log.Printf("创建目录：%s\n", dir)
-	cmd := exec.Command("bash", "-c", c)
-	cmd.Run()
-
-	c = fmt.Sprintf("scp -P %s  -i %s  %s  %s@%s:%s", sshPort, identifyFile, name, sshUser, sshIp, name)
+	c = fmt.Sprintf("scp -P %s  -i %s  %s  %s@%s:%s", n.SshPort, n.SshIdentify, name, n.SshUser, n.SshIp, remotePath)
 	log.Printf("执行复制：%s\n", c)
 	cmd = exec.Command("bash", "-c", c)
-	cmd.Run()
+	err = cmd.Run()
+	if err != nil {
+		return
+	}
+	n.ContentReplace(remotePath)
+	return nil
+}
 
-	c = fmt.Sprintf("ssh -p %s  -i %s -l %s  %s  \"sed -i %s %s \"", sshPort, identifyFile, sshUser, sshIp, sedRule, name)
+// ContentReplace
+// @Description: 批量替换文件中的文本内容
+// @receiver this
+// @param name
+func (n *NotifyToSync) ContentReplace(name string) {
+	sedRule := n.Configs.ReplaceRule.SedRule
+	if sedRule == "" {
+		return
+	}
+
+	c := fmt.Sprintf("ssh -p %s  -i %s -l %s  %s  \"sed -i %s %s \"", n.SshPort, n.SshIdentify, n.SshUser, n.SshIp, sedRule, name)
 	log.Printf("执行替换：%s\n", c)
-	cmd = exec.Command("bash", "-c", c)
-	cmd.Run()
+	cmd := exec.Command("bash", "-c", c)
+	err := cmd.Run()
+	if err != nil {
+		log.Println("执行文件内容替换失败 文件路径" + name)
+		return
+	}
+}
 
-	c = fmt.Sprintf("ssh -p %s  -i %s -l %s  %s  \"/usr/local/nginx/sbin/nginx -s reload \"", sshPort, identifyFile, sshUser, sshIp)
+// AfterOperation
+// @Description: 文件同步后置远程操作
+// @receiver this
+// @param name//
+func (n *NotifyToSync) AfterOperation() {
+	command := n.Configs.Command.CompletedCmd
+
+	if command == "" {
+		return
+	}
+	log.Println(n.SshIdentify)
+	c := fmt.Sprintf("ssh -p %s  -i %s -l %s  %s  \" %s \"", n.SshPort, n.SshIdentify, n.SshUser, n.SshIp, command)
 	log.Printf("启动服务：%s\n", c)
-	cmd = exec.Command("bash", "-c", c)
-	cmd.Run()
+	cmd := exec.Command("bash", "-c", c)
+	err := cmd.Run()
+	if err != nil {
+		return
+	}
 }

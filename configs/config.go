@@ -11,10 +11,12 @@ type TomlConfig struct {
 	Source      Source      `toml:"source"`
 	Destination Destination `toml:"destination"`
 	ReplaceRule ReplaceRule `toml:"replace_rule"`
+	Command     Command     `toml:"command"`
 }
 
 type Source struct {
 	SourceDir string `toml:"source_dir"`
+	TargetDir string `toml:"target_dir"`
 }
 
 type Destination struct {
@@ -25,12 +27,21 @@ type Destination struct {
 	DestinationDir string `toml:"destination_dir"`
 }
 
+type Command struct {
+	CompletedCmd string `toml:"completed_cmd"`
+}
+
 type ReplaceRule struct {
 	SedRule string `toml:"sed_rule"`
 }
 
 var Config = &TomlConfig{}
 
+// ReadConf
+// @Description: 读取配置文件
+// @param path
+// @return p
+// @return err
 func ReadConf(path string) (p *TomlConfig, err error) {
 	fcontent := loadToml(path)
 	if fcontent == nil {
@@ -46,10 +57,17 @@ func ReadConf(path string) (p *TomlConfig, err error) {
 	return
 }
 
+// setConfig
+// @Description: 设置配置文件
+// @param config
 func setConfig(config *TomlConfig) {
 	Config = config
 }
 
+// loadToml
+// @Description: 加载toml配置文件
+// @param path
+// @return fcontent
 func loadToml(path string) (fcontent []byte) {
 	var (
 		fp  *os.File

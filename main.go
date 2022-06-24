@@ -42,6 +42,9 @@ func main() {
 	}
 }
 
+// exec
+// @Description: 执行监控程序 监控kill 和 ctrl+c 退出
+// @param config
 func exec(config string) {
 	syncConfig, _ := configs.ReadConf(config)
 
