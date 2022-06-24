@@ -1,6 +1,7 @@
 [source]
     source_dir = "/home/www/"
     target_dir = "/root/"
+    delete_dir = "/tmp/watch_file"
 
 [destination]
     ssh_ip = "47.24.10.249"

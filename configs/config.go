@@ -17,6 +17,7 @@ type TomlConfig struct {
 type Source struct {
 	SourceDir string `toml:"source_dir"`
 	TargetDir string `toml:"target_dir"`
+	DeleteDir string `toml:"delete_dir"`
 }
 
 type Destination struct {

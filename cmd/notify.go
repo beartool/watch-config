@@ -58,10 +58,15 @@ func (n *NotifyToSync) RemoveNotify(name string) {
 		remoteDir = filepath.Join(targetDir, relativePath)
 	}
 
-	mvPath := filepath.Join("/tmp/sync/", relativePath)
-	mvDir := filepath.Dir(mvPath)
+	// 获取删除时的文件目录
+	deleteDir := n.Configs.Source.DeleteDir
+	if deleteDir == "" {
+		deleteDir = "/tmp/watch-file"
+	}
+
+	mvPath := filepath.Join(deleteDir, relativePath)
+	mvDir, _ := filepath.Split(mvPath)
 	c := fmt.Sprintf("ssh -p %s  -i %s -l %s  %s  \" mkdir -p %s \"", n.SshPort, n.SshIdentify, n.SshUser, n.SshIp, mvDir)
-	log.Printf("创建远程目录：%s\n", remoteDir)
 	cmd := exec.Command("bash", "-c", c)
 	err = cmd.Run()
 	if err != nil {
@@ -69,7 +74,7 @@ func (n *NotifyToSync) RemoveNotify(name string) {
 	}
 
 	c = fmt.Sprintf("ssh -p %s  -i %s -l %s  %s  \" mv -f %s %s\"", n.SshPort, n.SshIdentify, n.SshUser, n.SshIp, remoteDir, mvPath)
-	log.Printf("删除远程文件：%s\n", remoteDir)
+	log.Printf("删除远程文件：%s, 移动至 %s\n", remoteDir, mvPath)
 	cmd = exec.Command("bash", "-c", c)
 	err = cmd.Run()
 	if err != nil {
