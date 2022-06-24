@@ -64,12 +64,10 @@ func (this *WatcherFile) WatchEvent() {
 						this.notify.CreateNotify(ev.Name)
 					}
 				}
-
 				if ev.Op&fsnotify.Write == fsnotify.Write {
 					log.Println("写入文件 : ", ev.Name)
 					this.notify.CreateNotify(ev.Name)
 				}
-
 				if ev.Op&fsnotify.Remove == fsnotify.Remove {
 					//如果删除文件是目录，则移除监控
 					fi, err := os.Stat(ev.Name)
@@ -79,18 +77,22 @@ func (this *WatcherFile) WatchEvent() {
 					}
 					this.notify.RemoveNotify(ev.Name)
 				}
-
 				if ev.Op&fsnotify.Rename == fsnotify.Rename {
 					//如果重命名文件是目录，则移除监控 ,注意这里无法使用os.Stat来判断是否是目录了
 					//因为重命名后，go已经无法找到原文件来获取信息了,所以简单粗爆直接remove
 					//同时还会有一个创建的通知，所以移除原来的文件就行
+					_, err := os.Stat(ev.Name)
+					if err == nil {
+						// 能获取到文件可能时文件写入
+						continue
+					}
 					log.Println("重命名文件 : ", ev.Name)
 					this.watch.Remove(ev.Name)
 					this.notify.RemoveNotify(ev.Name)
 				}
 				if ev.Op&fsnotify.Chmod == fsnotify.Chmod {
 					// 权限先忽略
-					log.Println("修改权限 : ", ev.Name)
+					// log.Println("修改权限 : ", ev.Name)
 				}
 			}
 		case err := <-this.watch.Errors:

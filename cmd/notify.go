@@ -120,7 +120,7 @@ func (n *NotifyToSync) FileSync(name string) (err error) {
 	remotePath := filepath.Join(remoteDir, filename)
 
 	c = fmt.Sprintf("scp -P %s  -i %s  %s  %s@%s:%s", n.SshPort, n.SshIdentify, name, n.SshUser, n.SshIp, remotePath)
-	log.Printf("执行复制：%s\n", c)
+	log.Printf("执行复制：%s to %s\n", name, remotePath)
 	cmd = exec.Command("bash", "-c", c)
 	err = cmd.Run()
 	if err != nil {
