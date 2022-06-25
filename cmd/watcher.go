@@ -19,10 +19,12 @@ func NewWatcherFile() *WatcherFile {
 	return w
 }
 
+//
 // WatchDir
 // @Description: 添加监控目录
 // @receiver this
 // @param dir
+//
 func (this *WatcherFile) WatchDir(dir string) {
 	//通过Walk来遍历目录下的所有子目录
 	filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
@@ -44,9 +46,11 @@ func (this *WatcherFile) WatchDir(dir string) {
 	go this.WatchEvent() //协程
 }
 
+//
 // WatchEvent
 // @Description: 处理监控事件
 // @receiver this
+//
 func (this *WatcherFile) WatchEvent() {
 	for {
 		select {

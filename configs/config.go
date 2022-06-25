@@ -38,11 +38,13 @@ type ReplaceRule struct {
 
 var Config = &TomlConfig{}
 
+//
 // ReadConf
 // @Description: 读取配置文件
 // @param path
 // @return p
 // @return err
+//
 func ReadConf(path string) (p *TomlConfig, err error) {
 	fcontent := loadToml(path)
 	if fcontent == nil {
@@ -58,17 +60,21 @@ func ReadConf(path string) (p *TomlConfig, err error) {
 	return
 }
 
+//
 // setConfig
 // @Description: 设置配置文件
 // @param config
+//
 func setConfig(config *TomlConfig) {
 	Config = config
 }
 
+//
 // loadToml
 // @Description: 加载toml配置文件
 // @param path
 // @return fcontent
+//
 func loadToml(path string) (fcontent []byte) {
 	var (
 		fp  *os.File

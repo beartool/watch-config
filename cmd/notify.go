@@ -18,6 +18,11 @@ type NotifyToSync struct {
 	Configs     *configs.TomlConfig
 }
 
+//
+// NewNotifyToSync
+// @Description: 文件通知构造
+// @return *NotifyToSync
+//
 func NewNotifyToSync() *NotifyToSync {
 	destination := configs.Config.Destination
 	m := &NotifyToSync{
@@ -30,10 +35,12 @@ func NewNotifyToSync() *NotifyToSync {
 	return m
 }
 
+//
 // CreateNotify
 // @Description: 同步远端
 // @receiver n
 // @param name
+//
 func (n *NotifyToSync) CreateNotify(name string) {
 	res, err := n.FileSync(name)
 	if err != nil || res == false {
@@ -42,11 +49,13 @@ func (n *NotifyToSync) CreateNotify(name string) {
 	n.AfterOperation()
 }
 
+//
 // RemoveNotify
 // @Description: 文件删除，远程文件移动到临时目录 rm存在风险
 // @receiver n
 // @param name
 // @return err
+//
 func (n *NotifyToSync) RemoveNotify(name string) {
 	isTmp := n.CheckIsTmpFile(name)
 	if isTmp {
@@ -86,10 +95,12 @@ func (n *NotifyToSync) RemoveNotify(name string) {
 	}
 }
 
+//
 // FileSync
 // @Description: 同步文件到远端
 // @receiver this
 // @param name
+//
 func (n *NotifyToSync) FileSync(name string) (res bool, err error) {
 	isTmp := n.CheckIsTmpFile(name)
 	if isTmp {
@@ -130,10 +141,12 @@ func (n *NotifyToSync) FileSync(name string) (res bool, err error) {
 	return true, nil
 }
 
+//
 // ContentReplace
 // @Description: 批量替换文件中的文本内容
 // @receiver this
 // @param name
+//
 func (n *NotifyToSync) ContentReplace(name string) {
 	sedRule := n.Configs.ReplaceRule.SedRule
 	if sedRule == "" {
@@ -150,10 +163,12 @@ func (n *NotifyToSync) ContentReplace(name string) {
 	}
 }
 
+//
 // AfterOperation
 // @Description: 文件同步后置远程操作
 // @receiver this
-// @param name//
+// @param name
+//
 func (n *NotifyToSync) AfterOperation() {
 	command := n.Configs.Command.CompletedCmd
 	for _, cmd := range command {
