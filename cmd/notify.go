@@ -176,7 +176,7 @@ func (n *NotifyToSync) AfterOperation() {
 //
 func (n *NotifyToSync) CheckIsTmpFile(name string) (tmp bool) {
 	filename := filepath.Base(name)
-	matched, err := regexp.MatchString(`\w+\.(swp|swx|\w+~)$`, filename)
+	matched, err := regexp.MatchString(`\w+\.(swp|swx|swpx|\w+~)$`, filename)
 	if err == nil && matched == true {
 		return true
 	}
