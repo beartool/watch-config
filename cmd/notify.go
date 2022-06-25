@@ -35,8 +35,8 @@ func NewNotifyToSync() *NotifyToSync {
 // @receiver n
 // @param name
 func (n *NotifyToSync) CreateNotify(name string) {
-	err := n.FileSync(name)
-	if err != nil {
+	res, err := n.FileSync(name)
+	if err != nil || res == false {
 		return
 	}
 	n.AfterOperation()
@@ -90,10 +90,10 @@ func (n *NotifyToSync) RemoveNotify(name string) {
 // @Description: 同步文件到远端
 // @receiver this
 // @param name
-func (n *NotifyToSync) FileSync(name string) (err error) {
+func (n *NotifyToSync) FileSync(name string) (res bool, err error) {
 	isTmp := n.CheckIsTmpFile(name)
 	if isTmp {
-		return err
+		return false, nil
 	}
 	remoteDir := filepath.Dir(name)
 	if targetDir := n.Configs.Source.TargetDir; targetDir != "" {
@@ -109,7 +109,7 @@ func (n *NotifyToSync) FileSync(name string) (err error) {
 	cmd := exec.Command("bash", "-c", c)
 	err = cmd.Run()
 	if err != nil {
-		return
+		return false, nil
 	}
 	// 目录则不执行同步
 	fileInfo, err := os.Stat(name)
@@ -127,7 +127,7 @@ func (n *NotifyToSync) FileSync(name string) (err error) {
 		return
 	}
 	n.ContentReplace(remotePath)
-	return nil
+	return true, nil
 }
 
 // ContentReplace
@@ -158,7 +158,7 @@ func (n *NotifyToSync) AfterOperation() {
 	command := n.Configs.Command.CompletedCmd
 	for _, cmd := range command {
 		c := fmt.Sprintf("ssh -p %s  -i %s -l %s  %s  \" %s \"", n.SshPort, n.SshIdentify, n.SshUser, n.SshIp, cmd)
-		log.Printf("后置命令执行：%s\n", c)
+		log.Printf("后置命令执行：%s\n", command)
 		cmd := exec.Command("bash", "-c", c)
 		err := cmd.Run()
 		if err != nil {

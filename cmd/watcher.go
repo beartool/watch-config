@@ -59,7 +59,7 @@ func (this *WatcherFile) WatchEvent() {
 						this.watch.Add(ev.Name)
 						log.Println("添加监控 : ", ev.Name)
 					}
-					if !file.IsDir() {
+					if err == nil && !file.IsDir() {
 						log.Println("创建文件 : ", ev.Name)
 						this.notify.CreateNotify(ev.Name)
 					}
